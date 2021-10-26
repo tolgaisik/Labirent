@@ -1,6 +1,7 @@
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.awt.Point;
 
 public class Game {
@@ -55,13 +56,14 @@ public class Game {
         }
     }
 
-    private void test(int x, int y, int[][] test, List<Integer> possibleDirections, int item) {
+    private boolean test(int x, int y, int[][] test) {
         try {
             if (test[x][y] == (int) test[x][y]) {
-                possibleDirections.add(item);
+                return true;
             }
         } catch (IndexOutOfBoundsException e) {
         }
+        return false;
     }
 
     Point getFactor(int direction) {
@@ -94,28 +96,36 @@ public class Game {
         List<Integer> possibleDirections = new ArrayList<>();
 
         // 1 means up direction
-        test(x - 1, y, test, possibleDirections, 1);
+        if (test(x - 1, y, test))
+            possibleDirections.add(1);
 
         // 2 means up right direction
-        test(x - 1, y + 1, test, possibleDirections, 2);
+        if (test(x - 1, y + 1, test))
+            possibleDirections.add(2);
 
         // 3 means right direction
-        test(x, y + 1, test, possibleDirections, 3);
+        if (test(x, y + 1, test))
+            possibleDirections.add(3);
 
         // 4 means down right direction
-        test(x + 1, y + 1, test, possibleDirections, 4);
+        if (test(x + 1, y + 1, test))
+            possibleDirections.add(4);
 
         // 5 means down direction
-        test(x + 1, y, test, possibleDirections, 5);
+        if (test(x + 1, y, test))
+            possibleDirections.add(5);
 
         // 6 means down left direction
-        test(x + 1, y - 1, test, possibleDirections, 6);
+        if (test(x + 1, y - 1, test))
+            possibleDirections.add(6);
 
         // 7 means left direction
-        test(x, y - 1, test, possibleDirections, 7);
+        if (test(x, y - 1, test))
+            possibleDirections.add(7);
 
         // 8 means left up direction
-        test(x - 1, y - 1, test, possibleDirections, 8);
+        if (test(x - 1, y - 1, test))
+            possibleDirections.add(8);
 
         return possibleDirections;
     }
@@ -124,21 +134,42 @@ public class Game {
         return false;
     }
 
-    List<Point> findOptionsInDirection(int direction, Game.Square[][] __game__) {
-        return null;
+    Point multiplyFactor(Point position, int times) {
+        return new Point(position.x * times, position.y * times);
+    }
+
+    Point addPoints(Point first, Point second) {
+        return new Point(first.x + second.x, first.y + second.y);
+    }
+
+    List<Point> findOptionsInDirection(int direction, Game.Square[][] __game__, Point currentPosition) {
+        List<Point> options = new ArrayList<Point>();
+        Point factor = getFactor(direction);
+        int counter = 1;
+        Point cursor = addPoints(currentPosition, multiplyFactor(factor, counter));
+        int[][] dummy = new int[this.size][this.size];
+        while (test(cursor.x, cursor.y, dummy)) {
+            if (__game__[cursor.x][cursor.y].order == 0) {
+                options.add(new Point(cursor.x, cursor.y));
+            }
+            counter++;
+            cursor = addPoints(currentPosition, multiplyFactor(factor, counter));
+        }
+        return options;
     }
 
     void movePointInDirection(Game.Square[][] __game__, int direction, Point currentPosition) {
 
     }
 
-    List<Point> findNextOptions(Game.Square[][] __game__, Point currentSquarePoint) {
-        List<Integer> directions = getPossibleDirections(currentSquarePoint, this.size);
+    List<Point> findNextOptions(Game.Square[][] __game__, Point currentPosition) {
+        List<Integer> directions = getPossibleDirections(currentPosition, this.size);
         List<Point> options = new ArrayList<>();
         for (Integer direction : directions) {
-            List<Point> optionsInDirections = findOptionsInDirection(direction, __game__);
+            List<Point> optionsInDirections = findOptionsInDirection(direction, __game__, currentPosition);
             options.addAll(optionsInDirections);
         }
+        // Collections.shuffle(options);
         return options;
     }
 
@@ -146,7 +177,7 @@ public class Game {
         return isDone = true;
     }
 
-    private class Square {
+    class Square {
         int direction = 0;
         int order = 0;
 
@@ -182,7 +213,9 @@ public class Game {
 
     public static void main(String[] args) {
         int[][] test = new int[5][5];
-        System.out.println(new Game(4).getPossibleDirections(new Point(1, 1), 4));
+        Game g = new Game(4);
+        List<Point> point = g.findOptionsInDirection(3, g.gameTable, new Point(0, 0));
+        System.out.println();
     }
 
 }
