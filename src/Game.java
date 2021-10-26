@@ -21,6 +21,7 @@ public class Game {
 
     private void setClassVariables(int size) {
         this.size = size;
+        // setMinimumSize
     }
 
     private void generateGameTable(int __size__) {
