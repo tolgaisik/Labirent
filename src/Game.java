@@ -3,7 +3,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-
+import java.util.Collections;
 public class Game {
     public int size;
     public boolean isDone = false;
@@ -32,6 +32,8 @@ public class Game {
         if (!shouldContinue)
             return;
         if (order == 16) {
+            shouldContinue = false;
+            printGame(this.gameTable);
             validateGame(this.gameTable);
             return;
         }
@@ -40,7 +42,7 @@ public class Game {
         if (order == 15) {
             // System.out.println("Hazırlanıyor. -> " + options.size());
             eliminateOptions(options, this.size);
-            // System.out.println("Tamamlandı. -> " + options.size());
+            //System.out.println("Tamamlandı. -> " + options.size());
 
         }
 
@@ -51,7 +53,23 @@ public class Game {
         }
 
     }
+    private void printGame(Square[][] __game__) {
+        int row = __game__.length;
+        int col = __game__[0].length;
+        System.out.println(" ------------------- GAME -----------------");
+        System.out.println("");
+        
+        for (int i = 0; i < row; ++i) {
+            for(int j = 0; j < col; ++j) {
+                System.out.println(__game__[i][j]);
+            }
+            System.out.println("");
+        } 
 
+        System.out.println("");        
+        System.out.println(" ------------------- GAME -----------------");
+        
+    }
     private void eliminateOptions(List<Point> options, int __SIZE__) {
         if (options.size() == 0)
             return;
@@ -64,6 +82,7 @@ public class Game {
     }
 
     private Boolean checkLastOrderConstraint(int __SIZE__, Point option) {
+        
         if ((option.y == (__SIZE__ - 1)) || (option.x == option.y) || (option.x == (__SIZE__ - 1))) {
             return true;
         } else {
@@ -79,10 +98,15 @@ public class Game {
         __game__[option.x][option.y].setOrder(order);
         List<Integer> directions = getPossibleDirections(option, __SIZE__);
         int index = new Random().nextInt(directions.size());
-        Integer next = directions.get(index);
-        __game__[option.x][option.y].setDirection(order == 15 ? 4 : next);
+        Integer next = order == 15 ? chooseDirectionForFifteen(option, __SIZE__) : directions.get(index);
+        __game__[option.x][option.y].setDirection(next);
     }
-
+    private int chooseDirectionForFifteen(Point option, int __SIZE__) {
+        if(option.x == (__SIZE__-1)) return 3;
+        else if(option.y == (__SIZE__-1)) return 5;
+        else if (option.x == option.y) return 4; 
+        else return -1;
+    }
     private void resetOption(Game.Square[][] __game__, int __SIZE__, Point option) {
         __game__[option.x][option.y].reset();
     }
@@ -103,8 +127,8 @@ public class Game {
     }
 
     private void setStartPoint(Square[][] __game__, int __size__, int start) {
-        int x = start / __size__;
-        int y = start % __size__;
+        int x = 0;
+        int y = 0;
         this.start = new Point(x, y);
         if (__game__[x][y] != null) {
             __game__[x][y].setOrder(1);
@@ -119,7 +143,7 @@ public class Game {
         int[] points = { 1, 7, 8 };
         if (__game__[x][y] != null) {
             __game__[x][y].setOrder((int) Math.pow(__size__, 2));
-            __game__[x][y].setDirection(points[new Random().nextInt(3)]);
+            //__game__[x][y].setDirection(points[new Random().nextInt(3)]);
         }
     }
 
@@ -237,7 +261,7 @@ public class Game {
             List<Point> optionsInDirections = findOptionsInDirection(direction, __game__, currentPosition);
             options.addAll(optionsInDirections);
         }
-        // Collections.shuffle(options);
+        Collections.shuffle(options);
         return options;
     }
 
