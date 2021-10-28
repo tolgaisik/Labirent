@@ -1,8 +1,8 @@
+import java.awt.Point;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Random;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.awt.Point;
 
 public class Game {
     public int size;
@@ -10,14 +10,81 @@ public class Game {
     public Square[][] gameTable;
     public Point start, end;
 
+    private Boolean shouldContinue = true;
+
     Game(int __SIZE__) {
         setClassVariables(__SIZE__);
         generateGameTable(__SIZE__);
-        setStartPoint(gameTable, __SIZE__, 0);
+        setStartPoint(gameTable, __SIZE__, 1);
         setEndPoint(gameTable, __SIZE__, (int) Math.pow(__SIZE__, 2) - 1);
+        buildGameTable(new Point(0, 0), new Point(__SIZE__ - 1, __SIZE__ - 1), new Point(0, 0), 2);
     }
 
     Game() {
+    }
+
+    void validateGame(Game.Square[][] __game__) {
+
+    }
+
+    void buildGameTable(Point __startPoint, Point __endPoint, Point currentPosition, int order) {
+
+        if (!shouldContinue)
+            return;
+        if (order == 16) {
+            validateGame(this.gameTable);
+            return;
+        }
+        List<Point> options = findNextOptions(this.gameTable, currentPosition);
+
+        if (order == 15) {
+            // System.out.println("Hazırlanıyor. -> " + options.size());
+            eliminateOptions(options, this.size);
+            // System.out.println("Tamamlandı. -> " + options.size());
+
+        }
+
+        for (Point option : options) {
+            chooseOption(this.gameTable, this.size, order, option);
+            buildGameTable(__startPoint, __endPoint, option, order + 1);
+            resetOption(this.gameTable, this.size, option);
+        }
+
+    }
+
+    private void eliminateOptions(List<Point> options, int __SIZE__) {
+        if (options.size() == 0)
+            return;
+        for (Iterator<Point> iterator = options.iterator(); iterator.hasNext();) {
+            Point option = iterator.next();
+            if (checkLastOrderConstraint(__SIZE__, option) == false) {
+                iterator.remove();
+            }
+        }
+    }
+
+    private Boolean checkLastOrderConstraint(int __SIZE__, Point option) {
+        if ((option.y == (__SIZE__ - 1)) || (option.x == option.y) || (option.x == (__SIZE__ - 1))) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    void doesEndsCorrectly() {
+
+    }
+
+    private void chooseOption(Game.Square[][] __game__, int __SIZE__, int order, Point option) {
+        __game__[option.x][option.y].setOrder(order);
+        List<Integer> directions = getPossibleDirections(option, __SIZE__);
+        int index = new Random().nextInt(directions.size());
+        Integer next = directions.get(index);
+        __game__[option.x][option.y].setDirection(order == 15 ? 4 : next);
+    }
+
+    private void resetOption(Game.Square[][] __game__, int __SIZE__, Point option) {
+        __game__[option.x][option.y].reset();
     }
 
     private void setClassVariables(int size) {
@@ -56,6 +123,7 @@ public class Game {
         }
     }
 
+    // test if a cell(square or point) is inside array and is integer
     private boolean test(int x, int y, int[][] test) {
         try {
             if (test[x][y] == (int) test[x][y]) {
@@ -205,6 +273,11 @@ public class Game {
             this.order = order;
         }
 
+        public void reset() {
+            this.direction = 0;
+            this.order = 0;
+        }
+
         @Override
         public String toString() {
             return "Square{ direction=" + direction + ", order=" + order + "}";
@@ -214,7 +287,9 @@ public class Game {
     public static void main(String[] args) {
         int[][] test = new int[5][5];
         Game g = new Game(4);
-        List<Point> point = g.findOptionsInDirection(3, g.gameTable, new Point(0, 0));
+        // List<Point> point = g.findOptionsInDirection(3, g.gameTable, new Point(0,
+        // 0));
+        // List<Point> points = g.findNextOptions(g.gameTable, new Point(0, 0));
         System.out.println();
     }
 
