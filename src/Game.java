@@ -2,25 +2,30 @@ import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Random;
 import java.util.Collections;
+
 public class Game {
     public int size;
     public boolean isDone = false;
-    public Square[][] gameTable;
+    public Square[][] gameTable, question;
     public Point start, end;
 
     private Boolean shouldContinue = true;
 
     Game(int __SIZE__) {
+        gameInit(__SIZE__);
+        gameSolve(this.question);
+    }
+
+    Game() {
+    }
+
+    void gameInit(int __SIZE__) {
         setClassVariables(__SIZE__);
         generateGameTable(__SIZE__);
         setStartPoint(gameTable, __SIZE__, 1);
         setEndPoint(gameTable, __SIZE__, (int) Math.pow(__SIZE__, 2) - 1);
         buildGameTable(new Point(0, 0), new Point(__SIZE__ - 1, __SIZE__ - 1), new Point(0, 0), 2);
-    }
-
-    Game() {
     }
 
     void validateGame(Game.Square[][] __game__) {
@@ -32,57 +37,63 @@ public class Game {
         if (!shouldContinue)
             return;
         if (order == 16) {
-            shouldContinue = false;
-            printGame(this.gameTable);
-            validateGame(this.gameTable);
-            return;
+            if ((currentPosition.x == (this.size - 1)) || (currentPosition.y == (this.size - 1))
+                    || (currentPosition.x == currentPosition.y)) {
+                shouldContinue = false;
+                gameTable[currentPosition.x][currentPosition.y]
+                        .setDirection(chooseDirectionForFifteen(currentPosition, this.size));
+                printGame(this.gameTable);
+            }
         }
-        List<Point> options = findNextOptions(this.gameTable, currentPosition);
+        List<OptionWithDirection> options = findNextOptions(this.gameTable, currentPosition);
+        System.out.println("");
 
-        if (order == 15) {
-            // System.out.println("Hazırlanıyor. -> " + options.size());
-            eliminateOptions(options, this.size);
-            //System.out.println("Tamamlandı. -> " + options.size());
+        /*
+         * if (order == 15) { // System.out.println("Hazırlanıyor. -> "
+         * +options.size()); eliminateOptions(options, this.size); //
+         * System.out.println("Tamamlandı. -> " + options.size()); }
+         */
 
-        }
-
-        for (Point option : options) {
-            chooseOption(this.gameTable, this.size, order, option);
-            buildGameTable(__startPoint, __endPoint, option, order + 1);
-            resetOption(this.gameTable, this.size, option);
+        for (OptionWithDirection optionWD : options) {
+            chooseOption(this.gameTable, currentPosition, this.size, order, optionWD);
+            buildGameTable(__startPoint, __endPoint, optionWD.option, order + 1);
+            resetOption(this.gameTable, this.size, optionWD.option);
         }
 
     }
+
     private void printGame(Square[][] __game__) {
         int row = __game__.length;
         int col = __game__[0].length;
         System.out.println(" ------------------- GAME -----------------");
         System.out.println("");
-        
+
         for (int i = 0; i < row; ++i) {
-            for(int j = 0; j < col; ++j) {
-                System.out.println(__game__[i][j]);
+            for (int j = 0; j < col; ++j) {
+                System.out.print("[" + (__game__[i][j].order < 10 ? "0" + __game__[i][j].order : __game__[i][j].order)
+                        + " " + getDirectionSymbol(__game__[i][j].direction) + "]");
             }
             System.out.println("");
-        } 
+        }
 
-        System.out.println("");        
+        System.out.println("");
         System.out.println(" ------------------- GAME -----------------");
-        
+
     }
-    private void eliminateOptions(List<Point> options, int __SIZE__) {
+
+    private void eliminateOptions(List<OptionWithDirection> options, int __SIZE__) {
         if (options.size() == 0)
             return;
-        for (Iterator<Point> iterator = options.iterator(); iterator.hasNext();) {
-            Point option = iterator.next();
-            if (checkLastOrderConstraint(__SIZE__, option) == false) {
+        for (Iterator<OptionWithDirection> iterator = options.iterator(); iterator.hasNext();) {
+            OptionWithDirection option = iterator.next();
+            if (checkLastOrderConstraint(__SIZE__, option.option) == false) {
                 iterator.remove();
             }
         }
     }
 
     private Boolean checkLastOrderConstraint(int __SIZE__, Point option) {
-        
+
         if ((option.y == (__SIZE__ - 1)) || (option.x == option.y) || (option.x == (__SIZE__ - 1))) {
             return true;
         } else {
@@ -90,29 +101,37 @@ public class Game {
         }
     }
 
-    void doesEndsCorrectly() {
-
-    }
-
-    private void chooseOption(Game.Square[][] __game__, int __SIZE__, int order, Point option) {
+    private void chooseOption(Game.Square[][] __game__, Point currentPosition, int __SIZE__, int order,
+            OptionWithDirection optionWD) {
+        // TODO
+        Point option = optionWD.option;
         __game__[option.x][option.y].setOrder(order);
-        List<Integer> directions = getPossibleDirections(option, __SIZE__);
-        int index = new Random().nextInt(directions.size());
-        Integer next = order == 15 ? chooseDirectionForFifteen(option, __SIZE__) : directions.get(index);
-        __game__[option.x][option.y].setDirection(next);
+        // List<Integer> directions = getPossibleDirections(option, __SIZE__);
+        // int index = new Random().nextInt(directions.size());
+        // Integer next = order == 15 ? chooseDirectionForFifteen(option, __SIZE__) :
+        // optionWD.relativeDirection;
+        __game__[currentPosition.x][currentPosition.y].setDirection(optionWD.relativeDirection);
     }
+
     private int chooseDirectionForFifteen(Point option, int __SIZE__) {
-        if(option.x == (__SIZE__-1)) return 3;
-        else if(option.y == (__SIZE__-1)) return 5;
-        else if (option.x == option.y) return 4; 
-        else return -1;
+        if (option.x == (__SIZE__ - 1))
+            return 3;
+        else if (option.y == (__SIZE__ - 1))
+            return 5;
+        else if (option.x == option.y)
+            return 4; // this option does not work with non-square tables mxn when m != n TODO
+        else
+            return -1;
     }
+
     private void resetOption(Game.Square[][] __game__, int __SIZE__, Point option) {
         __game__[option.x][option.y].reset();
     }
 
     private void setClassVariables(int size) {
         this.size = size;
+        this.isDone = false;
+        this.shouldContinue = true;
         // setMinimumSize
     }
 
@@ -132,7 +151,7 @@ public class Game {
         this.start = new Point(x, y);
         if (__game__[x][y] != null) {
             __game__[x][y].setOrder(1);
-            __game__[x][y].setDirection(new Random().nextInt(3) + 3);
+            // __game__[x][y].setDirection(new Random().nextInt(3) + 3);
         }
     }
 
@@ -140,10 +159,9 @@ public class Game {
         int x = end / __size__;
         int y = end % __size__;
         this.end = new Point(x, y);
-        int[] points = { 1, 7, 8 };
         if (__game__[x][y] != null) {
             __game__[x][y].setOrder((int) Math.pow(__size__, 2));
-            //__game__[x][y].setDirection(points[new Random().nextInt(3)]);
+            // __game__[x][y].setDirection(points[new Random().nextInt(3)]);
         }
     }
 
@@ -222,10 +240,6 @@ public class Game {
         return possibleDirections;
     }
 
-    public boolean canMove() {
-        return false;
-    }
-
     Point multiplyFactor(Point position, int times) {
         return new Point(position.x * times, position.y * times);
     }
@@ -234,15 +248,15 @@ public class Game {
         return new Point(first.x + second.x, first.y + second.y);
     }
 
-    List<Point> findOptionsInDirection(int direction, Game.Square[][] __game__, Point currentPosition) {
-        List<Point> options = new ArrayList<Point>();
+    List<OptionWithDirection> findOptionsInDirection(int direction, Game.Square[][] __game__, Point currentPosition) {
+        List<OptionWithDirection> options = new ArrayList<OptionWithDirection>();
         Point factor = getFactor(direction);
         int counter = 1;
         Point cursor = addPoints(currentPosition, multiplyFactor(factor, counter));
         int[][] dummy = new int[this.size][this.size];
         while (test(cursor.x, cursor.y, dummy)) {
             if (__game__[cursor.x][cursor.y].order == 0) {
-                options.add(new Point(cursor.x, cursor.y));
+                options.add(new OptionWithDirection(new Point(cursor.x, cursor.y), direction));
             }
             counter++;
             cursor = addPoints(currentPosition, multiplyFactor(factor, counter));
@@ -250,22 +264,29 @@ public class Game {
         return options;
     }
 
-    void movePointInDirection(Game.Square[][] __game__, int direction, Point currentPosition) {
-
-    }
-
-    List<Point> findNextOptions(Game.Square[][] __game__, Point currentPosition) {
+    List<OptionWithDirection> findNextOptions(Game.Square[][] __game__, Point currentPosition) {
         List<Integer> directions = getPossibleDirections(currentPosition, this.size);
-        List<Point> options = new ArrayList<>();
+        List<OptionWithDirection> optionsWithDirection = new ArrayList<>();
         for (Integer direction : directions) {
-            List<Point> optionsInDirections = findOptionsInDirection(direction, __game__, currentPosition);
-            options.addAll(optionsInDirections);
+            List<OptionWithDirection> optionsInDirections = findOptionsInDirection(direction, __game__,
+                    currentPosition);
+            optionsWithDirection.addAll(optionsInDirections);
         }
-        Collections.shuffle(options);
-        return options;
+        Collections.shuffle(optionsWithDirection);
+        return optionsWithDirection;
     }
 
-    private Boolean done() {
+    class OptionWithDirection {
+        public OptionWithDirection(Point _point, int _direction) {
+            this.option = _point;
+            this.relativeDirection = _direction;
+        }
+
+        Point option;
+        int relativeDirection; // the arrow points to this option
+    }
+
+    public Boolean done() {
         return isDone = true;
     }
 
@@ -308,13 +329,48 @@ public class Game {
         }
     }
 
+    static String getDirectionSymbol(int direction) {
+        switch (direction) {
+        case 1:
+            return "\u2191";
+        case 2:
+            return "\u2197";
+        case 3:
+            return "\u2192";
+        case 4:
+            return "\u2198";
+        case 5:
+            return "\u2193";
+        case 6:
+            return "\u2199";
+        case 7:
+            return "\u2190";
+        case 8:
+            return "\u2196";
+        default:
+            return null;
+        }
+    }
+
+    /**
+     * after this point uniqueness check and solve operations implemented -> base
+     * case --> if(order is 15 and only option is in the last correct place then it
+     * is a solition increment solution count) -> first get the square -> find
+     * options for square's direction -> for each of an option choose option recurse
+     * reset the option
+     */
+
+    void gameSolve(Game.Square[][] __question__) {
+        // TODO question should be copied currently is null
+    }
+
     public static void main(String[] args) {
         int[][] test = new int[5][5];
         Game g = new Game(4);
-        // List<Point> point = g.findOptionsInDirection(3, g.gameTable, new Point(0,
-        // 0));
+        // List<OptionWithDirection> optionsWithDirection =
+        // g.findOptionsInDirection(direction, __game__, currentPosition)
         // List<Point> points = g.findNextOptions(g.gameTable, new Point(0, 0));
-        System.out.println();
+        // System.out.println("\u2197");
     }
 
 }
