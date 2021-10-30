@@ -27,7 +27,7 @@ public class Retrive extends JDialog {
 
     Retrive(App labirent) {
         super(labirent, "Renk Düzeni Seciniz", true);
-        panel = labirent.soruPanel;
+        panel = labirent.canvas;
         int w = 380, h = 240;
         setBounds(labirent.getX() + (labirent.getWidth() - w) / 2, labirent.getY() + (labirent.getHeight() - h) / 2, w,
                 h);

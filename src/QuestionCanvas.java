@@ -25,24 +25,45 @@ public class QuestionCanvas extends JPanel {
     boolean print = false; // yazdiriliyor mu
     int printWidth = 0, printHeight = 0; // kagit boyutlari
     int printX = 0, printY = 0; // kagitin sol ve ust bosluklari
-    App labirent;
+    App application;
+    Image image = null;
 
-    public Game soru;
+    public Game game;
 
     public QuestionCanvas(App __labirent) {
-        this.labirent = __labirent;
+        this.application = __labirent;
         try {
+            image = Toolkit.getDefaultToolkit().createImage("827.gif");
             BufferedReader br = new BufferedReader(new FileReader("vs.dat"));
             duzen = br.readLine();
             duzenAl(duzen);
             br.close();
         } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
     @Override
     public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D graph = (Graphics2D) g;
+        graph.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+        graph.setColor(arkaPlan);
+        graph.fillRect(0, 0, getWidth(), getHeight());
+        try {
 
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+    }
+
+    void drawLoadingIcon(Graphics2D g) {
+        if (image != null) {
+            g.clearRect(0, 0, getWidth(), getHeight());
+            int x = (this.getWidth() - image.getWidth(null)) / 2;
+            int y = (this.getHeight() - image.getHeight(null)) / 2;
+            g.drawImage(image, x, y, this);
+        }
     }
 
     void duzenAl(String dosya) {
@@ -50,7 +71,7 @@ public class QuestionCanvas extends JPanel {
             BufferedReader br = new BufferedReader(new FileReader("ayarlar/" + dosya));
             arkaPlan = new Color(Integer.parseInt(br.readLine()));
             setBackground(arkaPlan);
-            labirent.getContentPane().setBackground(arkaPlan);
+            application.getContentPane().setBackground(arkaPlan);
             cerceve = new Color(Integer.parseInt(br.readLine()));
             tabloIc = new Color(Integer.parseInt(br.readLine()));
             tablo = new Color(Integer.parseInt(br.readLine()));
@@ -61,14 +82,13 @@ public class QuestionCanvas extends JPanel {
             font = new Font(br.readLine(), Integer.parseInt(br.readLine()), Integer.parseInt(br.readLine()));
             sorubasligi = br.readLine();
             cevapbasligi = br.readLine();
-            labirent.setBounds(Integer.parseInt(br.readLine()), Integer.parseInt(br.readLine()),
+            application.setBounds(Integer.parseInt(br.readLine()), Integer.parseInt(br.readLine()),
                     Integer.parseInt(br.readLine()), Integer.parseInt(br.readLine()));
             int tsize = Integer.parseInt(br.readLine());
             int tlights = Integer.parseInt(br.readLine());
-            labirent.controlPanel.boyut.setSelectedIndex(tsize - 5);
             br.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(labirent, "Renk d\u00fczeni al\u0131namad\u0131", "Hata",
+            JOptionPane.showMessageDialog(application, "Renk d\u00fczeni al\u0131namad\u0131", "Hata",
                     JOptionPane.ERROR_MESSAGE);
             e.printStackTrace();
             kayitli = false;

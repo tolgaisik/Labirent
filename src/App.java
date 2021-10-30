@@ -11,21 +11,19 @@ import java.awt.Dimension;
  * @author Fatih Keles
  */
 
-@SuppressWarnings("serial")
 public class App extends JFrame {
-    public QuestionCanvas soruPanel;
+    QuestionCanvas canvas;
     ControlPanel controlPanel;
 
     public App() {
-        setTitle("\u0130\u015flem Tablosu");
+        setTitle("Labirent");
         setBounds(100, 100, 600, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
-        // setMinimumSize(new Dimension(900,600));
         controlPanel = new ControlPanel(this);
-        soruPanel = new QuestionCanvas(this);
+        canvas = new QuestionCanvas(this);
 
-        getContentPane().add(soruPanel, BorderLayout.CENTER);
+        getContentPane().add(canvas, BorderLayout.CENTER);
         getContentPane().add(controlPanel, BorderLayout.SOUTH);
 
         setVisible(true);

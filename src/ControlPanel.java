@@ -3,6 +3,8 @@
  */
 
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -21,120 +23,126 @@ import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 
 /**
- * @author Fatih Keles
+ * @author Tolga Işık
  * @param <App>
  */
 
-@SuppressWarnings("serial")
-public class ControlPanel extends JPanel implements ActionListener {
-    JButton yenile, yazdir, kopyala, cik, ayarlar;
-    JTextArea aciklamalar;
-    JCheckBox _sum, _mult, _sub;
-    JComboBox boyut, copylist;
-    private String[] boyutlar = { "4", "5", "6", "7", "8" };
-    App labirent;
+public class ControlPanel extends JPanel {
+    JButton settings, copy, create, exit, mark;
+    JTextArea questionDescription;
+    JComboBox<String> rows, columns, copylist, clu;
+    JRadioButton shouldIncludeClues;
+    App application;
     JPanel buttonPanel;
-    private int n, f;
     boolean busy = false;
     private Thread thread = null;
-    private String[] kopyalamaSecenekleri = { "Yan Yana", "Alt Alta", "Soru", "Cevap" };
-    private boolean[] operator = { false, false, false };
+    private String[] copyOptions = { "Yan Yana", "Alt Alta", "Soru", "Cevap" };
+    private String[] rowColOptions = { "3", "4", "5", "6" };
+    private String[] clueOptions = { "1", "2", "3" };
+    Info info = null;
+    ThreadSlayer slayer = new ThreadSlayer();
 
-    public ControlPanel(App labirent) {
+    static class ThreadSlayer {
+        Boolean shouldKill = false;
 
-        aciklamalar.setVisible(true);
-        aciklamalar.setEditable(true);
-        aciklamalar.setBackground(java.awt.Color.WHITE);
-        aciklamalar.setLineWrap(true);
-        aciklamalar.setWrapStyleWord(true);
-        aciklamalar.setFont(new Font("Verdana", Font.PLAIN, 12));
-        aciklamalar.setPreferredSize(new java.awt.Dimension(200, 60));
-        add(aciklamalar, BorderLayout.CENTER);
+        void kill() {
+            shouldKill = true;
+        }
+    }
+
+    public ControlPanel(App __application) {
+
+        this.application = __application;
+        createButtonPanel();
+
+    }
+
+    void createButtonPanel() {
+
         buttonPanel = new JPanel();
 
-        add(buttonPanel, BorderLayout.SOUTH);
-    }
+        rows = new JComboBox<String>(rowColOptions);
+        rows.setSelectedIndex(0);
 
-    public void actionPerformed(ActionEvent event) {
-        Object source = event.getSource();
+        columns = new JComboBox<String>(rowColOptions);
+        columns.setSelectedIndex(0);
 
-        if (source == boyut) {
-            int i = boyut.getSelectedIndex();
-            int count = i + 4;
+        clu = new JComboBox<String>(clueOptions);
+        clu.setSelectedIndex(0);
 
-        } else if (source == yenile) {
-            if (busy) {
-                return;
-            }
-            thread = new Thread() {
-                public void run() {
+        shouldIncludeClues = new JRadioButton();
 
-                }
-            };
+        createNewGameButton();
 
-            thread.start();
-        } else if (source == cik) {
+        copylist = new JComboBox<String>(copyOptions);
+
+        copy = new JButton("Kopyala");
+        copy.addActionListener((ActionEvent e) -> {
+            copyQuestionCanvasToClipboard();
+        });
+
+        exit = new JButton("Çık");
+        exit.addActionListener((ActionEvent e) -> {
             System.exit(0);
-        } else if (source == ayarlar) {
-            new Settings(labirent);
-        } else if (source == yazdir) {
-            PrintJob pj = Toolkit.getDefaultToolkit().getPrintJob(labirent, "", new java.util.Properties());
-            if (pj == null)
-                return;
-            Graphics g = pj.getGraphics();
-            g.setFont(new Font("Times New Roman", 1, 18));
-            int x = 0, y = 40;
-            g.drawString("\u00e7i\u00e7ekler", x + 30, y);
-            y += 25;
-            g.setFont(new Font("Times New Roman", 0, 12));
+        });
 
-            int width = pj.getPageDimension().width - 60;
+        mark = new JButton("?");
+        mark.addActionListener((ActionEvent e) -> {
+            showQuestionDetail();
+        });
+        buttonPanel.add(new JLabel("Satır : "));
+        buttonPanel.add(rows);
+        buttonPanel.add(new JLabel("Sutün : "));
+        buttonPanel.add(columns);
+        buttonPanel.add(new JLabel("İpucu Sayısı : "));
+        buttonPanel.add(clu);
+        buttonPanel.add(new JLabel("İpucu : "));
+        buttonPanel.add(shouldIncludeClues);
+        buttonPanel.add(create);
+        buttonPanel.add(copylist);
+        buttonPanel.add(copy);
+        buttonPanel.add(exit);
+        buttonPanel.add(mark);
+        add(buttonPanel, BorderLayout.SOUTH);
 
-            java.util.StringTokenizer st = new java.util.StringTokenizer(aciklamalar.getText());
-            java.awt.FontMetrics fm = g.getFontMetrics();
-            while (st.hasMoreTokens()) {
-                String temp = st.nextToken();
-                if ((x + fm.stringWidth(temp) + 30) > (30 + width)) {
-                    x = 0;
-                    y += 15;
-                }
-                g.drawString(temp, x + 30, y);
-                x += (fm.stringWidth(temp + " "));
-            }
-
-            labirent.soruPanel.printWidth = pj.getPageDimension().width - 50;
-            labirent.soruPanel.printHeight = pj.getPageDimension().height - 50;
-            labirent.soruPanel.printX = 25;
-            labirent.soruPanel.printY = y + 30;
-            labirent.soruPanel.print = true;
-            labirent.soruPanel.paintComponent(g);
-            labirent.soruPanel.print = false;
-            labirent.soruPanel.printX = 0;
-            labirent.soruPanel.printY = 0;
-            labirent.soruPanel.printWidth = 0;
-            labirent.soruPanel.printHeight = 0;
-            pj.end();
-        } else if (source == kopyala) {
-            kopyala();
-        }
-        if (_mult.isSelected()) {
-            this.operator[0] = true;
-        } else {
-            this.operator[0] = false;
-        }
-        if (_sub.isSelected()) {
-            this.operator[1] = true;
-        } else {
-            this.operator[1] = false;
-        }
-        if (_sum.isSelected()) {
-            this.operator[2] = true;
-        } else {
-            this.operator[2] = false;
-        }
     }
 
-    public void kopyala() {
+    void createNewGameButton() {
+        create = new JButton("Yeni");
+        create.addActionListener((ActionEvent e) -> {
+            if (thread != null && thread.isAlive()) {
+                slayer.kill();
+                busy = false;
+                application.canvas.game = null;
+                application.canvas.repaint();
+                return;
+            }
+            thread = new Thread(() -> {
+                busy = true;
+                create.setText("İptal");
+                slayer.shouldKill = false;
+                application.canvas.setCursor(new Cursor(Cursor.WAIT_CURSOR));
+                application.canvas.game = new Game(rows.getSelectedIndex() + 3, columns.getSelectedIndex() + 3,
+                        shouldIncludeClues.isSelected(), clu.getSelectedIndex() + 1, slayer);
+                create.setText("Yeni");
+                application.canvas.setCursor(new Cursor(Cursor.DEFAULT_CURSOR));
+                busy = false;
+                application.canvas.repaint();
+            });
+            thread.start();
+        });
+    }
+
+    void prepareDescription() {
+        questionDescription.setVisible(true);
+        questionDescription.setEditable(true);
+        questionDescription.setBackground(java.awt.Color.WHITE);
+        questionDescription.setLineWrap(true);
+        questionDescription.setWrapStyleWord(true);
+        add(questionDescription, BorderLayout.CENTER);
+    }
+
+    public void copyQuestionCanvasToClipboard() {
         int copymode = copylist.getSelectedIndex();
 
         if (copymode == 1) {
@@ -144,5 +152,10 @@ public class ControlPanel extends JPanel implements ActionListener {
         }
         Toolkit.getDefaultToolkit().getSystemClipboard();
 
+    }
+
+    void showQuestionDetail() {
+        info = new Info(1);
+        info.init();
     }
 }
