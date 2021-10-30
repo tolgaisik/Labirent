@@ -76,6 +76,7 @@ public class Game {
                 int numberOfSolutions = solveGame(this.gameTable);
                 if (numberOfSolutions == 1) {
                     shouldContinue = false;
+                    done();
                 }
             }
         }
@@ -369,7 +370,7 @@ public class Game {
         case 8:
             return "\u2196";
         default:
-            return ".";
+            return "";
         }
     }
 

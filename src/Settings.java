@@ -11,9 +11,9 @@ import javax.swing.JColorChooser;
 import javax.swing.JDialog;
 import javax.swing.JOptionPane;
 /*
- * Created on 29.10.2021
+ * Created on __
  *
- * @author Tolga Işık
+ * @author Legacy
  */
 
 public class Settings extends JDialog implements ActionListener {
@@ -29,13 +29,13 @@ public class Settings extends JDialog implements ActionListener {
         int w = 170, h = 300;
         setBounds(soru.getX() + (soru.getWidth() - w) / 2, soru.getY() + (soru.getHeight() - h) / 2, w, h);
         setLayout(new GridLayout(0, 1));
-        td = new JButton("Tablo Çerçeve Rengi");
+        td = new JButton("Çember Rengi");
         tc = new JButton("Tablo Çizgi Rengi");
         tb = new JButton("Tablo İç Rengi");
         ap = new JButton("Arkaplan Rengi");
         ii = new JButton("İç İpucu Rengi");
-        di = new JButton("Dış İpucu Rengi");
-        da = new JButton("Dış ipucu Arkaplan Rengi");
+        di = new JButton("Daire Rengi");
+        da = new JButton("Ok Rengi");
         yt = new JButton("Yazı Tipi");
         kd = new JButton("Kaydet");
         al = new JButton("Al");
@@ -101,9 +101,9 @@ public class Settings extends JDialog implements ActionListener {
                 bw.newLine();
                 bw.write(soru.canvas.font.getSize() + "");
                 bw.newLine();
-                bw.write(soru.canvas.sorubasligi);
+                bw.write("soru.canvas.sorubasligi");
                 bw.newLine();
-                bw.write(soru.canvas.cevapbasligi);
+                bw.write("soru.canvas.cevapbasligi");
                 bw.newLine();
                 bw.write(soru.getX() + "");
                 bw.newLine();
@@ -125,19 +125,9 @@ public class Settings extends JDialog implements ActionListener {
                         JOptionPane.ERROR_MESSAGE);
             }
         } else if (event.getSource() == sorubaslik) {
-            String newbaslik = JOptionPane.showInputDialog(ayarlar,
-                    "Soru Ba\u015fl\u0131\u011f\u0131n\u0131 Se\u00e7iniz", soru.canvas.sorubasligi);
-            if (newbaslik == null)
-                return;
-            soru.canvas.sorubasligi = newbaslik;
-            soru.canvas.kayitli = false;
+
         } else if (event.getSource() == cevapbaslik) {
-            String newbaslik = JOptionPane.showInputDialog(ayarlar,
-                    "Cevap Ba\u015fl\u0131\u011f\u0131n\u0131 Se\u00e7iniz", soru.canvas.cevapbasligi);
-            if (newbaslik == null)
-                return;
-            soru.canvas.cevapbasligi = newbaslik;
-            soru.canvas.kayitli = false;
+
         } else if (event.getSource() == cz) {
             Color c = JColorChooser.showDialog(null, "\u00c7i\u00e7ek Rengini Se\u00e7iniz", soru.canvas.cevap);
             if (c != null) {

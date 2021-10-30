@@ -8,7 +8,7 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 
 /**
- * @author Fatih Keles
+ * @author Tolga Işık
  */
 
 public class App extends JFrame {
@@ -17,16 +17,15 @@ public class App extends JFrame {
 
     public App() {
         setTitle("Labirent");
-        setBounds(100, 100, 600, 600);
+        setPreferredSize(new Dimension(1200, 800));
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
         controlPanel = new ControlPanel(this);
         canvas = new QuestionCanvas(this);
-
         getContentPane().add(canvas, BorderLayout.CENTER);
         getContentPane().add(controlPanel, BorderLayout.SOUTH);
-
         setVisible(true);
+        pack();
     }
 
     public static void main(String[] args) {

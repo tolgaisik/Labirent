@@ -10,6 +10,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JTextArea;
@@ -34,15 +35,17 @@ public class Info extends JFrame implements ActionListener {
     JButton edit, save;
     JTextArea text;
     JPanel pnl;
-    int NODE;
+    int NODE = 0;
 
     Info(int _node) {
+        super();
         NODE = _node;
     }
 
     void init() {
         setTitle("Bilgiler");
         setBounds(200, 200, 400, 400);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
         setVisible(true);
         pnl = new JPanel();
@@ -65,10 +68,11 @@ public class Info extends JFrame implements ActionListener {
             e.printStackTrace();
         }
         text.setText(str);
-        add(text, BorderLayout.NORTH);
+        add(text);
         pnl.add(save);
         pnl.add(edit);
         add(pnl, BorderLayout.SOUTH);
+        pack();
     }
 
     @Override
