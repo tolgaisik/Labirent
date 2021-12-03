@@ -3,15 +3,27 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Collections;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Game {
+    static public class InputStringTypeIsNotValid extends Exception {
+        InputStringTypeIsNotValid(String message) {
+            super(message);
+        }
+    }
+
+    final static String squareDividerToken = "/";
+    final static String inlineToken = ":";
+    final static String emptyToken = "?";
     public int size, row, col;
     public boolean isDone = false;
     public Square[][] gameTable, question, answer;
     public Point start, end;
     ControlPanel.ThreadSlayer slayer;
     private Boolean shouldContinue = true;
-    private Boolean shouldIncludeClues = false;
+    public Boolean shouldIncludeClues = false, hasInput = false, moreThanOne = false;
+    List<String> answers;
 
     Game(int row, int col, Boolean includeClues, int numberofClues, ControlPanel.ThreadSlayer slyr) {
         this.row = row;
@@ -21,6 +33,78 @@ public class Game {
         this.numberofclues = numberofClues;
         this.slayer = slyr;
         gameInit(row, col);
+        // System.out.println(generateAnswerString(answer));
+        System.out.println(generateAnswerString(question));
+    }
+
+    Game(String inputString, int __ROW__, int __COL__) throws Game.InputStringTypeIsNotValid {
+        this.hasInput = true;
+        if (!testInputString(inputString) || inputString.length() == 0)
+            throw new Game.InputStringTypeIsNotValid("Oyun girdisi hatalı. Bazı karakterler eksik olabilir.");
+        parseAndCreateInputGame(inputString, __ROW__, __COL__);
+        setStartPoint(gameTable);
+        setEndPoint(gameTable);
+        answers = new ArrayList<String>();
+        int number_of_solutions = solveGame(gameTable);
+        if (number_of_solutions == 1) {
+            done();
+            this.answer = new Square[this.row][this.col];
+            String[] tokens = answers.get(0).split(Game.squareDividerToken);
+            generateFromString(this.answer, tokens);
+        }
+        else {
+            moreThanOne = true;
+        }
+
+    }
+    // things getting a little messy here...
+    private String generateAnswerString(Game.Square[][] game) {
+        StringBuilder answerString = new StringBuilder();
+        for (int i = 0; i < this.row; ++i) {
+            for (int j = 0; j < this.col; ++j) {
+                String order = game[i][j].order == 0 ? Game.emptyToken : Integer.toString(game[i][j].order);
+                String direction = game[i][j].direction == 0 ? Game.emptyToken : Integer.toString(game[i][j].direction);
+                answerString.append(order + Game.inlineToken + direction);
+                if (!(i == this.row - 1 && j == this.col - 1))
+                    answerString.append(Game.squareDividerToken);
+            }
+        }
+        return answerString.toString();
+    }
+
+    private void parseAndCreateInputGame(String inputString, int __ROW__, int __COL__)
+            throws Game.InputStringTypeIsNotValid {
+        String[] tokens = inputString.split(Game.squareDividerToken);
+        if (tokens.length < 6 || tokens.length != __ROW__ * __COL__) {
+            throw new Game.InputStringTypeIsNotValid("Hücre sayısı " + __ROW__ * __COL__ + " tane olmalıdır.");
+        }
+        this.row = __ROW__;
+        this.col = __COL__;
+        this.size = row * col;
+        this.gameTable = new Square[this.row][this.col];
+        generateFromString(this.gameTable, tokens);
+    }
+
+    private void generateFromString(Game.Square[][] template, String[] tokens) {
+        int order = 0, direction = 0;
+        int index = 0;
+        for (String token : tokens) {
+            String[] squareTuple = token.split(Game.inlineToken);
+            order = squareTuple[0].charAt(0) == Game.emptyToken.charAt(0) ? 0 : Integer.parseInt(squareTuple[0]);
+            direction = squareTuple[1].charAt(0) == Game.emptyToken.charAt(0) ? 0 : Integer.parseInt(squareTuple[1]);
+            template[index / this.row][index % this.col] = new Square(direction, order);
+            ++index;
+        }
+    }
+
+    final static String regex = "([0-9]|[1-9][0-9]|\\?):([0-9]|[1-9][0-9]|\\?)(\\/([0-9]|[1-9][0-9]|\\?):([0-9]|[1-9][0-9]|\\?))+";
+
+    Boolean testInputString(String inputString) {
+        Pattern pattern = Pattern.compile(Game.regex);
+        Matcher matcher = pattern.matcher(inputString);
+        if (matcher.matches())
+            return true;
+        return false;
     }
 
     Game(int __SIZE__) {
@@ -28,10 +112,10 @@ public class Game {
     }
 
     Game() {
+
     }
 
     void gameInit(int row, int col) {
-        // setClassVariables(__SIZE__);
         setClassVariables();
         generateGameTable();
         setStartPoint(gameTable);
@@ -68,6 +152,7 @@ public class Game {
         if (!shouldContinue || slayer.shouldKill) {
             return;
         }
+
         if (order == this.size) {
             if ((currentPosition.x == (this.row - 1)) || (currentPosition.y == (this.col - 1))
                     || isDiogonalToLastSquare(currentPosition)) {
@@ -80,6 +165,7 @@ public class Game {
                 }
             }
         }
+
         List<OptionWithDirection> options = findNextOptions(this.gameTable, currentPosition);
 
         for (OptionWithDirection optionWD : options) {
@@ -146,7 +232,7 @@ public class Game {
         int x = 0;
         int y = 0;
         this.start = new Point(x, y);
-        if (__game__[x][y] != null) {
+        if (__game__ != null && __game__[x][y] != null) {
             __game__[x][y].setOrder(1);
         }
     }
@@ -155,7 +241,7 @@ public class Game {
         int x = this.row - 1;
         int y = this.col - 1;
         this.end = new Point(x, y);
-        if (__game__[x][y] != null) {
+        if (__game__ != null && __game__[x][y] != null) {
             __game__[x][y].setOrder(this.size);
         }
     }
@@ -173,24 +259,24 @@ public class Game {
 
     Point getFactor(int direction) {
         switch (direction) {
-        case 1:
-            return new Point(-1, 0);
-        case 2:
-            return new Point(-1, 1);
-        case 3:
-            return new Point(0, 1);
-        case 4:
-            return new Point(1, 1);
-        case 5:
-            return new Point(1, 0);
-        case 6:
-            return new Point(1, -1);
-        case 7:
-            return new Point(0, -1);
-        case 8:
-            return new Point(-1, -1);
-        default:
-            return null;
+            case 1:
+                return new Point(-1, 0);
+            case 2:
+                return new Point(-1, 1);
+            case 3:
+                return new Point(0, 1);
+            case 4:
+                return new Point(1, 1);
+            case 5:
+                return new Point(1, 0);
+            case 6:
+                return new Point(1, -1);
+            case 7:
+                return new Point(0, -1);
+            case 8:
+                return new Point(-1, -1);
+            default:
+                return null;
         }
     }
 
@@ -353,24 +439,24 @@ public class Game {
 
     static String getDirectionSymbol(int direction) {
         switch (direction) {
-        case 1:
-            return "\u2191";
-        case 2:
-            return "\u2197";
-        case 3:
-            return "\u2192";
-        case 4:
-            return "\u2198";
-        case 5:
-            return "\u2193";
-        case 6:
-            return "\u2199";
-        case 7:
-            return "\u2190";
-        case 8:
-            return "\u2196";
-        default:
-            return "";
+            case 1:
+                return "\u2191";
+            case 2:
+                return "\u2197";
+            case 3:
+                return "\u2192";
+            case 4:
+                return "\u2198";
+            case 5:
+                return "\u2193";
+            case 6:
+                return "\u2199";
+            case 7:
+                return "\u2190";
+            case 8:
+                return "\u2196";
+            default:
+                return "";
         }
     }
 
@@ -385,12 +471,13 @@ public class Game {
 
     Game.Square[][] createSolutionTemplate(Game.Square[][] invalidQuestion) {
         Game.Square[][] template = new Game.Square[this.row][this.col];
-        List<Integer> clues = new ArrayList<Integer>();
+        List<Point> clues = new ArrayList<Point>();
+        Random random = new Random();
         if (shouldIncludeClues) {
-            for (int index = 0; index < this.numberofclues; index++) {
-                int random = new Random().nextInt(this.size - 2) + 2;
-                clues.add(random);
-
+            while (clues.size() < this.numberofclues) {
+                int randomx = random.nextInt(this.row);
+                int randomy = random.nextInt(this.col);
+                clues.add(new Point(randomx, randomy));
             }
         }
         for (int i = 0; i < this.row; i++) {
@@ -399,9 +486,8 @@ public class Game {
             }
         }
         if (shouldIncludeClues) {
-            for (int clue : clues) {
-                template[clue / this.row][clue % this.col]
-                        .setOrder(invalidQuestion[clue / this.row][clue % this.col].getOrder());
+            for (Point clue : clues) {
+                template[clue.x][clue.y].setOrder(invalidQuestion[clue.x][clue.y].getOrder());
             }
         }
         setStartPoint(template);
@@ -444,6 +530,9 @@ public class Game {
                     || (isDiogonalToLastSquare(currentPosition)
                             && template[currentPosition.x][currentPosition.y].getDirection() == 4)) {
                 container.incrementByOne();
+                if (hasInput) {
+                    answers.add(generateAnswerString(template));
+                }
             }
             return;
         }

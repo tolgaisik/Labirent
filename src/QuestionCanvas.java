@@ -23,10 +23,10 @@ public class QuestionCanvas extends JPanel {
     Font font = null;
     App application;
     Image image = null;
-
+    String errorMessage = null;
     public Game game = null;
     Integer component_width = 0, component_height = 0, squareSize = 0;
-
+    public Boolean hasError = false;
     public QuestionCanvas(App __labirent) {
         super(true);
         this.application = __labirent;
@@ -109,6 +109,15 @@ public class QuestionCanvas extends JPanel {
         // answer
         graph.setColor(tablo);
         graph.translate(gameRect.x + (squareSize << 1), 0);
+        if(game.hasInput && game.moreThanOne) {
+            if(game.answers.size() == 0) {
+                JOptionPane.showMessageDialog(application, "Geçerli cevap bulunamadı.");
+                return;
+            }
+            for(int i = 0; i < game.answers.size(); i++) {
+                graph.drawString(game.answers.get(i), leftTop.x, leftTop.y);
+            }
+        }
         for (int i = 1; i < game.col; i++) {
             graph.drawLine(leftTop.x + squareSize * i, leftTop.y, leftTop.x + squareSize * i, leftTop.y + gameRect.y);
         }

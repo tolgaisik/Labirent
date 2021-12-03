@@ -1,2 +1,2 @@
-javac -d bin src/Game.java
-java -classpath ./bin/ Game
+javac -d bin src/App.java
+java -classpath ./bin/ App

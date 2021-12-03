@@ -14,7 +14,7 @@ import java.awt.Dimension;
 public class App extends JFrame {
     QuestionCanvas canvas;
     ControlPanel controlPanel;
-
+    QuestionInputPanel inputPanel;
     public App() {
         setTitle("Labirent");
         setPreferredSize(new Dimension(1200, 800));
@@ -22,6 +22,8 @@ public class App extends JFrame {
         getContentPane().setLayout(new BorderLayout());
         controlPanel = new ControlPanel(this);
         canvas = new QuestionCanvas(this);
+        inputPanel = new QuestionInputPanel(this);
+        getContentPane().add(inputPanel, BorderLayout.NORTH);
         getContentPane().add(canvas, BorderLayout.CENTER);
         getContentPane().add(controlPanel, BorderLayout.SOUTH);
         setVisible(true);

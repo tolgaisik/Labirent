@@ -40,12 +40,12 @@ public class Info extends JFrame implements ActionListener {
     Info(int _node) {
         super();
         NODE = _node;
+        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
     }
 
     void init() {
         setTitle("Bilgiler");
         setBounds(200, 200, 400, 400);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         getContentPane().setLayout(new BorderLayout());
         setVisible(true);
         pnl = new JPanel();
