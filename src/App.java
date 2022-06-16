@@ -1,7 +1,3 @@
-/*
- * Created on 07.May.2007
- */
-
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import java.awt.BorderLayout;

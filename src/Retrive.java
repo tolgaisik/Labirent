@@ -15,13 +15,10 @@ import javax.swing.JScrollPane;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 
-/**
- * @author Fatih Kele\u015f
- */
 
 @SuppressWarnings("serial")
 public class Retrive extends JDialog {
-    final JList list = new JList();
+    final JList<String> list = new JList<>();
     QuestionCanvas panel;
     final Retrive al = this;
 
